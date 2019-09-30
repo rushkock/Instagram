@@ -1,5 +1,8 @@
 # Instagram
-Fundamentals of Data science - Assignment 2 Well-being and Instagram
+## Assignment 2: Well-being and Instagram
+### Course: Fundamentals of Data science 
+
+INSERT GITHUB REPO STRUCTURE INFO 
 
 # Authors 
 Glen Cripps :rage4:
