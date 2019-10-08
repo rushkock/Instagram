@@ -14,13 +14,16 @@ from math import sqrt
 
 df = pd.read_pickle("survey_user_mrg.pickle")
 
-df = pd.get_dummies(df, columns=["X_gender",'X_employed'])
+df = pd.get_dummies(df, columns=["X_gender",'X_employed','X_income'])
 # The columns added for X_employed is ugly (have a look)
 # clean them up a bit
 df.columns = df.columns.str.replace(' ', '_').str.lower()
 df.columns = df.columns.str.replace('.', '_').str.lower()
+df.columns = df.columns.str.replace(',', '').str.lower()
 df.columns = df.columns.str.replace('&', '').str.lower()
+df.columns = df.columns.str.replace('$', '').str.lower()
 df.columns = df.columns.str.replace('(', '').str.lower()
+df.columns = df.columns.str.replace("'", '').str.lower()
 df.columns = df.columns.str.replace(')', '').str.lower()
 df.columns = df.columns.str.replace('__', '_').str.lower()
 df.columns = df.columns.str.replace('__', '_').str.lower()
@@ -31,11 +34,11 @@ ml_y_var = 'y_perma'
 # Get the list of columns that can be used for ML.  
 ml_X_cols = []
 
-ml_X_cols = ['x_user_follows','x_image_count','x_images_mean_comment_count','x_images_mean_like_count','x_gender_male']
+ml_X_cols = ['x_user_follows','x_image_count','x_images_mean_comment_count','x_images_mean_like_count']
 
 # Use the next block if you want to include a bunch of columns
 #for col in df.columns:
-#    if col not in ['y_perma','i_image_id','i_user_id','i_images_link']:
+#    if col[0:2] in ['x_']:
 #        ml_X_cols.append(col)
 
 # Toast the last few nulls 
@@ -60,3 +63,21 @@ lrm_r2s = r2_score(df_test[ml_y_var], df_test[ml_y_var + '_pred'])
 print(lrm_score)
 print(lrm_rms)
 print(lrm_r2s)
+
+
+
+
+from sklearn import datasets, linear_model
+from sklearn.linear_model import LinearRegression
+import statsmodels.api as sm
+from scipy import stats
+
+X = df_train[ml_X_cols]
+y = df_train[ml_y_var]
+
+
+X2 = sm.add_constant(X)
+est = sm.OLS(y, X2)
+est2 = est.fit()
+print(est2.summary())
+
