@@ -11,6 +11,7 @@ import pandas as pd
 survey_raw = pd.read_pickle("survey.pickle")
 image_metrics_raw = pd.read_pickle("image_metrics.pickle")
 image_data_raw = pd.read_pickle("image_data.pickle")
+object_labels_raw = pd.read_pickle("object_labels.pickle")
 
 # Build a user summary from the images_data file (data is denormalized in this file)
 user_data_sumr = image_data_raw.groupby(by="user_id") \
@@ -111,5 +112,13 @@ cols = survey_user_face_mrg.columns.tolist()
 cols.sort(reverse=True)
 
 survey_user_face_mrg = survey_user_face_mrg[cols]
+
+
+objects_ss = object_labels_raw[['image_id','data_amz_label','data_amz_label_confidence']].query("data_amz_label_confidence>=95")
+
+objects_ct = pd.crosstab(index=objects_ss.image_id, 
+                           columns = objects_ss.data_amz_label, 
+                           values=objects_ss.data_amz_label_confidence, aggfunc=pd.Series.mean
+                           ).reset_index()
 
 survey_user_mrg.to_pickle("survey_user_mrg.pickle")
