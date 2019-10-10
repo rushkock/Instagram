@@ -5,9 +5,8 @@ Created on Mon Oct  7 16:29:10 2019
 
 @author: hduser
 """
-
-
 import pandas as pd
+
 survey_raw = pd.read_pickle("survey.pickle")
 image_metrics_raw = pd.read_pickle("image_metrics.pickle")
 image_data_raw = pd.read_pickle("image_data.pickle")
@@ -107,18 +106,56 @@ faces_feat_pretty['i_user_id'] = faces_feat_pretty['i_user_id'].astype("int64")
 
 survey_user_face_mrg = survey_user_mrg.merge(faces_feat_pretty,on="i_user_id")
 
-cols = survey_user_face_mrg.columns.tolist()
+
+
+objects_ss = object_labels_raw[['image_id','data_amz_label','data_amz_label_confidence']]
+objects_counts = objects_ss.groupby('data_amz_label').agg(pd.Series.count).reset_index()
+objects_counts.sort_values(by='data_amz_label_confidence',inplace=True,ascending=False)
+objects_top50 = objects_counts['data_amz_label'][0:50]
+
+objects_toptags=objects_ss.merge(objects_top50,on="data_amz_label",how="inner")
+
+objects_ct = pd.crosstab(index=objects_toptags.image_id, 
+                           columns = objects_toptags.data_amz_label, 
+                           values=objects_toptags.data_amz_label_confidence, aggfunc=pd.Series.mean
+                           ).reset_index()
+
+objects_ct.fillna(0,inplace=True)
+
+objects_user = objects_ct.merge(image_data_raw[["image_id","user_id"]],how="inner")
+
+objects_user_tots= objects_user.groupby("user_id") \
+    .agg(pd.Series.mean).reset_index().drop(columns=["image_id"])
+    
+objects_user_tots.columns = objects_user_tots.columns.str.replace(' ', '_').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace('.', '_').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace(',', '').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace('&', '').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace('$', '').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace('(', '').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace("'", '').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace(')', '').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace('__', '_').str.lower()
+objects_user_tots.columns = objects_user_tots.columns.str.replace('__', '_').str.lower()
+
+objects_user_tots.columns = objects_user_tots.columns.str.lower()
+objects_user_pretty = objects_user_tots.add_prefix("X_img_obj_mean_")
+objects_user_pretty  = objects_user_pretty.rename(columns={"X_img_obj_mean_user_id":"i_user_id"})
+objects_user_pretty['i_user_id'] = objects_user_pretty['i_user_id'].astype('int64')
+survey_user_object_mrg = survey_user_face_mrg.merge(objects_user_pretty,how="left",on="i_user_id")
+
+survey_user_object_mrg['y_bool']= survey_user_object_mrg['y_perma'].apply(lambda x: 1 if x >= survey_user_object_mrg['y_perma'].mean() else 0)
+
+#survey_user_object_mrg['y_perma'].mean()
+
+cols = survey_user_object_mrg.columns.tolist()
 
 cols.sort(reverse=True)
 
-survey_user_face_mrg = survey_user_face_mrg[cols]
+survey_user_object_mrg = survey_user_object_mrg[cols]
 
 
-objects_ss = object_labels_raw[['image_id','data_amz_label','data_amz_label_confidence']].query("data_amz_label_confidence>=95")
 
-objects_ct = pd.crosstab(index=objects_ss.image_id, 
-                           columns = objects_ss.data_amz_label, 
-                           values=objects_ss.data_amz_label_confidence, aggfunc=pd.Series.mean
-                           ).reset_index()
+survey_user_object_mrg.to_pickle("survey_user_mrg.pickle")
+survey_user_object_mrg.to_csv("survey_user_mrg.csv")
 
-survey_user_mrg.to_pickle("survey_user_mrg.pickle")
