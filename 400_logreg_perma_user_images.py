@@ -34,7 +34,7 @@ ml_y_col = 'y_bool'
 # Get the list of columns that can be used for ML.  
 ml_X_cols = []
 
-ml_X_cols = ['x_user_follows','x_image_count','x_images_mean_comment_count','x_images_mean_like_count']
+ml_X_cols = ['x_user_follows','x_image_count','x_images_mean_comment_count','x_images_mean_like_count','x_img_avg_happy_score','x_img_avg_sad_score','x_img_avg_angry_score','x_img_obj_mean_beverage']
 
 # Use the next block if you want to include a bunch of columns
 #for col in df.columns:
@@ -47,12 +47,14 @@ df=df.dropna()
 df_train, df_test = train_test_split(df, test_size=.3, random_state=42)
 
 from sklearn.linear_model import LogisticRegression
+
 lr = LogisticRegression(penalty = 'l1', C = .1,random_state = 1)
 logreg_model = lr.fit(X=df_train[ml_X_cols],y=df_train[ml_y_col])
 # Get predictions for the test set
 df_test[ml_y_col + "_pred"] =logreg_model.predict(X=df_test[ml_X_cols])
-
+from sklearn.metrics import confusion_matrix 
 from sklearn.metrics import accuracy_score
-print("Accuracy Score - {}".format(accuracy_score(df_test[ml_y_col], df_test[ml_y_col + "_pred"])))
-print("Score - {}".format(lr.score(X=df_test[ml_X_cols],y=df_test[ml_y_col + '_pred'])))
 
+print("Accuracy Score - {}".format(accuracy_score(df_test[ml_y_col], df_test[ml_y_col + "_pred"])))
+results = confusion_matrix(df_test[ml_y_col], df_test[ml_y_col + '_pred'])
+print(results)

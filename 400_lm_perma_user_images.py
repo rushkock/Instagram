@@ -29,7 +29,7 @@ df.columns = df.columns.str.replace('__', '_').str.lower()
 df.columns = df.columns.str.replace('__', '_').str.lower()
 
 
-ml_y_vars = 'y_perma'
+y_vars = 'y_perma'
 
 # Get the list of columns that can be used for ML.  
 ml_X_cols = []
@@ -48,21 +48,11 @@ df=df.dropna()
 
 # Run linear regression model!
 
+import numpy as np
+r2_scores = np.zeros((6,6))
 
-y_vars = ml_y_vars
-
-#print(range(0,100))
-
-#tt_ratios=[1,2,3,4,5]
-
-#print(tt_ratios)
-
-#import numpy as np
-
-#r2_scores=np.zeros((7,7))
-
-for rs in [42]:
-    for tt_ratio in [0.3]:
+for rs in [1,2,3,4,5]:
+    for tt_ratio in [1,2,3,4,5]:
         df_train, df_test = train_test_split(df, test_size=tt_ratio/10, random_state=rs)
     
         lrm = LinearRegression().fit(X=df_train[ml_X_cols], y=df_train[y_vars])
@@ -76,7 +66,7 @@ for rs in [42]:
 #        r2_scores[0,rs+1] = rs
         r2_scores[0,rs] = rs
         r2_scores[tt_ratio,0] = tt_ratio/10
-        r2_scores[tt_ratio,rs+1] = round(lrm_r2s,2)
+        r2_scores[tt_ratio,rs] = round(lrm_r2s,2)
 
 #    print("LRM Score - training data - " + lrm_score)
 #    print("RMS - test data" + lrm_rms)

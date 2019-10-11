@@ -68,7 +68,7 @@ anp_raw = pd.read_pickle("anp.pickle")
 celebrity_raw = pd.read_pickle("celebrity.pickle")
 image_metrics_raw = pd.read_pickle("image_metrics.pickle")
 object_labels_raw = pd.read_pickle("object_labels.pickle")
-
+glen = object_labels_raw.query("data_amz_label=='Cat'")
 # I'll be working backwards from the leaf tables and summarizing merging
 
 import pandas as pd
